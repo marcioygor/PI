@@ -1,0 +1,242 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Data.OleDb;
+using System.Data.Odbc;
+using System.Collections;
+using System.Windows.Forms;
+
+namespace pi4
+{
+    public class BdConexao
+    {
+    
+          public OdbcConnection cn1 = new OdbcConnection();
+ 
+
+        public virtual void Conectar()
+        {
+            
+            cn1.ConnectionString = "Driver={Oracle in XE};" +
+           "Server=127.0.0.1:8081/;" +
+           "DataBase=pi4;" +
+           "Uid=system;" +
+           "Pwd=123456;";
+
+            cn1.Open();
+      }
+
+        public virtual void Desconectar()
+        {
+            cn1.Close();
+        } 
+
+
+
+        public virtual int RetornaId(string nome)
+        {
+
+           
+            BdConexao novo = new BdConexao();
+            bool result = false;
+            string id = "";
+
+            OdbcCommand cmd = new OdbcCommand("select id_categoria from categoria where nome= '" + nome + "';", novo.cn1);
+            novo.Conectar();
+            OdbcDataReader dados = cmd.ExecuteReader();
+            result = dados.HasRows;
+            id = dados["id_categoria"].ToString();
+            int valor = Convert.ToInt32(id);
+            novo.Desconectar();
+            return valor;                 
+
+        }
+
+
+     
+
+        //verificando se uma conta já existe 
+
+
+        public virtual bool VerificaNick(string nick)
+        {
+
+            BdConexao novo = new BdConexao();
+            bool existe = false;
+            bool result;
+
+            OdbcCommand cmd = new OdbcCommand("select * from usuario where nickname= '" + nick + "';", novo.cn1);
+            novo.Conectar();
+            OdbcDataReader dados = cmd.ExecuteReader();
+            result = dados.HasRows;
+
+            
+
+            if (result)
+            {
+
+                existe = true;
+
+                MessageBox.Show("Já existe um usuario com esse nickname!");
+            }
+
+            novo.Desconectar();
+            return existe;
+        }
+            
+
+        public virtual ArrayList RetornaFav(int id, int id_categoria)
+        {
+
+            BdConexao novo = new BdConexao();
+            ArrayList nome = new ArrayList();
+
+       
+            OdbcCommand cmd = new OdbcCommand("select nome from favoritos where id_usuario='" + id + "' and id_categoria = '" + id_categoria + "';", novo.cn1);
+            novo.Conectar();
+            
+
+            var leitor = cmd.ExecuteReader();
+
+            while (leitor.Read())
+            {
+                nome.Add(leitor["nome"].ToString());
+
+            }
+
+            novo.Desconectar();
+            return nome;
+
+
+        }
+
+
+        public virtual int RetornaIdUsuario(string nickname)
+        {
+
+            BdConexao novo = new BdConexao();
+            bool result = false;
+            string id = "";
+         
+
+                
+                OdbcCommand cmd = new OdbcCommand("select id_usuario from usuario where nickname= '" + nickname + "';", novo.cn1);
+                novo.Conectar();
+                OdbcDataReader dados = cmd.ExecuteReader();
+                result = dados.HasRows;
+                id = dados["id_usuario"].ToString();
+                int valor = Convert.ToInt32(id);
+                novo.Desconectar();
+                return valor;
+
+
+           
+
+        }
+
+        public virtual int RetornaIdProduto(string nome, int id_categoria)
+        {
+
+            BdConexao novo = new BdConexao();
+            bool result = false;
+            string id = "";
+
+            OdbcCommand cmd = new OdbcCommand("select id_produto from produto where nome= '" + nome  +"' and id_categoria = '" +id_categoria + "';", novo.cn1);
+            novo.Conectar();
+            OdbcDataReader dados = cmd.ExecuteReader();
+            result = dados.HasRows;
+            id = dados["id_produto"].ToString();
+            int valor = Convert.ToInt32(id);
+            novo.Desconectar();
+            return valor;
+
+
+        }
+
+
+
+
+        public virtual ArrayList CompareProduto(string nome, string categoria)
+        {
+            BdConexao novo = new BdConexao();
+            ArrayList nome1 = new ArrayList();
+
+            OdbcCommand cmd = new OdbcCommand("select nome, nome_categoria from produto where nome= '" + nome + "' and nome_categoria <>'" + categoria + "';", novo.cn1);
+            novo.Conectar();
+        
+            var leitor = cmd.ExecuteReader();
+
+            while (leitor.Read())
+            {
+                nome1.Add(leitor["nome_categoria"].ToString());
+
+            }
+
+            novo.Desconectar();
+            return nome1;
+        }
+
+
+
+
+
+
+        public virtual ArrayList RetornaNome(int id)
+        {
+            ArrayList ListaNome = new ArrayList();
+            BdConexao novo = new BdConexao();
+
+            OdbcCommand cmd = new OdbcCommand("select nome from produto where id_categoria= '" + id + "';", novo.cn1);
+            novo.Conectar();
+           
+            var leitor = cmd.ExecuteReader();
+
+            while (leitor.Read())
+            {
+                ListaNome.Add(leitor["nome"].ToString());
+            }
+
+            novo.Desconectar();
+            return ListaNome;
+
+        }
+
+        public virtual ArrayList RetornaDadosProd(string nome, int id)
+        {
+            ArrayList DadosProduc = new ArrayList();
+            BdConexao novo = new BdConexao();
+
+            try {
+                bool result = false;
+                OdbcCommand cmd = new OdbcCommand("select * from produto where nome= '" + nome + "' and Id_Categoria = '" + id + "';", novo.cn1);
+                novo.Conectar();
+                OdbcDataReader dados = cmd.ExecuteReader();
+                result = dados.HasRows;
+                DadosProduc.Add(dados["nome"].ToString());
+                DadosProduc.Add(dados["DESCRICAO"].ToString());
+                DadosProduc.Add(dados["COMPOSICAO"].ToString());
+                DadosProduc.Add(dados["IMPACTO"].ToString());
+                DadosProduc.Add(dados["TEMPO_DECOMP"].ToString());
+                DadosProduc.Add(dados["NOME_CATEGORIA"].ToString());
+            }
+
+            catch
+            {
+                MessageBox.Show("Ocorreu um erro!");
+            }
+
+            finally {
+                novo.Desconectar();
+               
+            }
+
+
+            return DadosProduc;
+
+
+        } 
+
+    }
+}
